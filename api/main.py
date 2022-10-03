@@ -1,7 +1,13 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from endpoints import data
+from typing import List
+import shutil
+import uvicorn
+
+class Message(BaseModel):
+    name: str
+    size: str
 
 app = FastAPI()
 
@@ -17,18 +23,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class Image(BaseModel):
-    name: str
-    type: str
-
-class Message(BaseModel):
-    name: str
-    size: str
 
 @app.get("/")
 async def root():
     return {"message": "Hello boyis"}
 
 @app.post("/upload")
-async def getPrediction(image: Image):
-    return image
+async def getPrediction(file: UploadFile = File(...)):
+    with open(f'{file.filename}', 'wb') as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    return {"message": "file saved"}
+
+# upload list of files
+# from yt video of russian guy
