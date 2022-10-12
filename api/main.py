@@ -34,5 +34,10 @@ async def getPrediction(file: UploadFile = File(...)):
         shutil.copyfileobj(file.file, buffer)
     return {"message": "file saved"}
 
+@app.get("/infer")
+async def getInference():
+
+    return {"message": "inference successful"}
+
 # upload list of files
 # from yt video of russian guy
