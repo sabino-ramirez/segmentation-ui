@@ -3,7 +3,8 @@
 
 	let avatar: any;
 	let fileinput: any;
-	let promise: {message: string};
+	// let promise: {message: string};
+	let promise: {content: string};
 
 	function onFileSelected(e: any) {
 		let image = e.target.files[0];
@@ -66,7 +67,7 @@
 	<input
 		style="display:none"
 		type="file"
-		accept=".jpg, .jpeg, .png"
+		accept=".jpg, .jpeg, .png, .pdf, .nii, .nii.gz"
 		on:change={(e) => onFileSelected(e)}
 		bind:this={fileinput}
 	/>
@@ -75,7 +76,7 @@
 {#if _.isEmpty(promise)}
 	<h2>Loading....</h2>
 {:else}
-	<h2>{promise.message}</h2>
+	<h2>{promise.content}</h2>
 {/if}
 
 <style>

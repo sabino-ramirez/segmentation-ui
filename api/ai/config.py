@@ -9,12 +9,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
+# import os
 import matplotlib.pyplot as plt
 import numpy as np
+import nibabel as nib
 import torch
 
-import monai
+# import monai
 from monai.config.deviceconfig import print_config
 
 from monai.apps.deepedit.transforms import (
@@ -22,7 +23,6 @@ from monai.apps.deepedit.transforms import (
     AddGuidanceFromPointsDeepEditd,
     ResizeGuidanceMultipleLabelDeepEditd,
 )
-
 
 from monai.transforms import (
     Activationsd,
@@ -40,10 +40,10 @@ from monai.transforms import (
 
 from monai.networks.nets.dynunet import DynUNet
 
-print_config()
+# print_config()
 
 
-def draw_points(guidance, slice_idx):
+def draw_points(guidance, _):
     if guidance is None:
         return
     for p in guidance:
@@ -52,7 +52,7 @@ def draw_points(guidance, slice_idx):
         plt.plot(p1, p2, "r+", "MarkerSize", 30)
 
 
-def show_image(image, label, guidance=None, slice_idx=None):
+def show_image(image, label, counter, guidance=None, slice_idx=None):
     plt.figure("check", (12, 6))
     plt.subplot(1, 2, 1)
     plt.title("image")
@@ -71,28 +71,31 @@ def show_image(image, label, guidance=None, slice_idx=None):
         plt.imshow(label)
         plt.colorbar()
         # draw_points(guidance, slice_idx)
-    plt.show()
+
+    plt.savefig(f"./predictions/pred_slice_{counter*.1:.0f}.png")
+    # plt.show()
 
 
-def print_data(data):
-    for k in data:
-        v = data[k]
+# def print_data(data):
+#     for k in data:
+#         v = data[k]
+#
+#         d = type(v)
+#         if type(v) in (int, float, bool, str, dict, tuple):
+#             d = v
+#         elif hasattr(v, "shape"):
+#             d = v.shape
+#
+#         if k in ("image_meta_dict", "label_meta_dict"):
+#             for m in data[k]:
+#                 print("{} Meta:: {} => {}".format(k, m, data[k][m]))
+#         else:
+#             print("Data key: {} = {}".format(k, d))
 
-        d = type(v)
-        if type(v) in (int, float, bool, str, dict, tuple):
-            d = v
-        elif hasattr(v, "shape"):
-            d = v.shape
 
-        if k in ("image_meta_dict", "label_meta_dict"):
-            for m in data[k]:
-                print("{} Meta:: {} => {}".format(k, m, data[k][m]))
-        else:
-            print("Data key: {} = {}".format(k, d))
+labels = {"vagina": 1, "background": 0}
 
-
-labels = {"spleen": 1, "background": 0}
-
+# target_spacing = [1.0, 1.0, 1.0]
 spatial_size = [128, 128, 128]
 
 
@@ -106,31 +109,38 @@ model = DynUNet(
     norm_name="instance",
     deep_supervision=False,
     res_block=True,
+    dropout=0.2,
 )
 
 # Download data and model
 
-resource = "https://github.com/Project-MONAI/MONAI-extra-test-data/releases/download/0.8.1/_image.nii.gz"
-dst = "_image.nii.gz"
+# resource = "https://github.com/Project-MONAI/MONAI-extra-test-data/releases/download/0.8.1/_image.nii.gz"
+# dst = "_image.nii.gz"
 
-if not os.path.exists(dst):
-    monai.apps.download_url(resource, dst)
+# if not os.path.exists(dst):
+#     monai.apps.download_url(resource, dst)
 
-resource = "https://github.com/Project-MONAI/MONAI-extra-test-data/releases/\
-download/0.8.1/pretrained_deepedit_dynunet-final.pt"
-dst = "pretrained_deepedit_dynunet-final.pt"
+# resource = "https://github.com/Project-MONAI/MONAI-extra-test-data/releases/\
+# download/0.8.1/pretrained_deepedit_dynunet-final.pt"
+# dst = "pretrained_deepedit_dynunet-final.pt"
 
-if not os.path.exists(dst):
-    monai.apps.download_url(resource, dst)
+# if not os.path.exists(dst):
+#     monai.apps.download_url(resource, dst)
 
 # spleen label points are demoed:     'spleen': [[66, 180, 105], [66, 180, 145]].
 data = {
-    "image": "./_image.nii.gz",
-    "spleen": [[66, 180, 105], [66, 180, 145]],
+    # "image": "./_image.nii.gz",
+    # "spleen": [[66, 180, 105], [66, 180, 145]],
+    "image": "./patient001.nii.gz",
+    "vagina": [[162, 159, 12], [163, 159, 18]],
     "background": [],
 }
-# Other organs/targets will follow, change 'spleen' in the following keys: e.g., "liver", "kidney", etc
-slice_idx = original_slice_idx = data["spleen"][0][2]
+
+# print(f'initial load image type: {type(data["image"])} \n')
+
+
+# number of the slice eg 12 here
+slice_idx = original_slice_idx = data["vagina"][0][2]
 
 # Pre Processing
 
@@ -145,7 +155,7 @@ pre_transforms = [
     ScaleIntensityRanged(
         keys="image", a_min=-175, a_max=250, b_min=0.0, b_max=1.0, clip=True
     ),
-    # DeepEdit Tranforms for Inference #
+    # DeepEdit Tranforms for Inference
     # Add guidance (points) in the form of tensors based on the user input
     AddGuidanceFromPointsDeepEditd(
         ref_image="image", guidance="guidance", label_names=labels
@@ -160,40 +170,45 @@ pre_transforms = [
     ToTensord(keys="image"),
 ]
 
-original_image = None
-
 # Going through each of the pre_transforms
-
 for t in pre_transforms:
     tname = type(t).__name__
     # print(tname)
+    test_img = data["image"]
     data = t(data)
     image = data["image"]
+    # adds label to data dict
     label = data.get("label")
+    # adds guidance to data dict
     guidance = data.get("guidance")
-    print("{} => image shape: {}".format(tname, image.shape))
+    # print("{} => image shape: {}".format(tname, image.shape))
+    # print(f"image before applying current pretransform: {type(test_img)} \n")
+    # print(f"image after applying current pretransform: {type(image)} \n")
 
     if tname == "LoadImaged":
-        original_image = data["image"]
         label = None
         tmp_image = image[:, :, slice_idx]
         # Change 'spleen' in the following keys if other target is chosen.
-        show_image(tmp_image, label, [data["spleen"][0]], slice_idx)
+        # show_image(tmp_image, label, [data["vagina"][0]], slice_idx)
 
 transformed_image = data["image"]
+# print(f"transformed image type: {type(transformed_image)} \n")
+# print(type(transformed_image.numpy()))
+# print(transformed_image.numpy().shape)
 guidance = data.get("guidance")
 
 # Evaluation
-model_path = 'deepedit_dynunet.pt'
+# model_path = "pretrained_deepedit_dynunet-final.pt"
+model_path = "deepedit_dynunet.pt"
 model.load_state_dict(torch.load(model_path))
 model.cuda()
 model.eval()
 
-inputs = data['image'][None].cuda()
+inputs = data["image"][None].cuda()
 with torch.no_grad():
     outputs = model(inputs)
 outputs = outputs[0]
-data['pred'] = outputs
+data["pred"] = outputs
 
 post_transforms = [
     EnsureTyped(keys="pred"),
@@ -207,16 +222,37 @@ pred = None
 for t in post_transforms:
     tname = type(t).__name__
     data = t(data)
-    image = data['image']
-    label = data['pred']
-    print("{} => image shape: {}, pred shape: {}".format(tname, image.shape, label.shape))
+    image = data["image"]
+    label = data["pred"]
+    # print(f'image during post transforms loop: {type(image)} \n')
+    # print(
+    #     "{} => image shape: {}, pred shape: {}".format(tname, image.shape, label.shape)
+    # )
 
-for i in range(10, 110, 10):
-    image = transformed_image[0, :, :, i]  # Taking the first channel which is the main image
-    label = data['pred'][:, :, i]
+# print(f'prediction type: {type(data["pred"])} \n')
+nib.save(nib.Nifti1Image(data["pred"], np.eye(4)), "./patient001_prediction.nii.gz")
+# print(f'image type after post transforms: {type(data["image"])} \n')
+# print(f"transformed image type: {type(transformed_image)} \n")
+
+# print(
+#     f"transformed_image type/shape: {type(transformed_image)}/{transformed_image.shape}"
+# )
+for i in range(10, 130, 10):
+    image = transformed_image[0, :, :, i]
+    # print(f"image type: {type(image)}")
+    # print(f"image shape: {image.shape}")
+
+    # Taking the first channel which is the main image
+    label = data["pred"][:, :, i]
+    # print(f"label type: {type(label)}")
+    # print(f"label shape: {label.shape}")
+
     if np.sum(label) == 0:
         continue
 
-    print("Final PLOT:: {} => image shape: {}, pred shape: {}; min: {}, max: {}, sum: {}".format(
-        i, image.shape, label.shape, np.min(label), np.max(label), np.sum(label)))
-    show_image(image, label)
+    # print(
+    #     "Final PLOT:: {} => image shape: {}, pred shape: {}; min: {}, max: {}, sum: {}".format(
+    #         i, image.shape, label.shape, np.min(label), np.max(label), np.sum(label)
+    #     )
+    # )
+    show_image(image, label, i)

@@ -1,13 +1,15 @@
 from fastapi import FastAPI, UploadFile, File
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List
 import shutil
-import uvicorn
+
+# from typing import List
+
 
 class Message(BaseModel):
-    name: str
-    size: str
+    content: str
+
 
 app = FastAPI()
 
@@ -26,18 +28,34 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"message": "Hello boyis"}
+    message = Message(content="Hello Welcome")
+    return message
 
-@app.post("/upload")
-async def getPrediction(file: UploadFile = File(...)):
-    with open(f'{file.filename}', 'wb') as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    return {"message": "file saved"}
+
+@app.post("/upload", response_model=Message)
+def uploadFile(file: UploadFile = File(...)):
+    try:
+        with open(f"ai/{file.filename}", "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception:
+        return {"message": "There was an error uploading the file"}
+    finally:
+        file.file.close()
+
+    # message = Message(content=f"Successfully uploaded {file.filename}")
+    # return message
+    return Message(content=f"Successfully uploaded {file.filename}")
+    # return {"message": f"Successfully uploaded {file.filename}"}
+
 
 @app.get("/infer")
 async def getInference():
+    slices = [
+        FileResponse(f"ai/predictions/pred_slice_{i}.png", filename=f"slice{i}.png")
+        for i in range(1, 13)
+    ]
+    return slices
 
-    return {"message": "inference successful"}
 
 # upload list of files
 # from yt video of russian guy
