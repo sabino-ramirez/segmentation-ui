@@ -25,3 +25,13 @@
 {:catch error}
 	<p>An error occurred: {error}</p>
 {/await}
+
+<style>
+  img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    height: 200px;
+    width: 50%;
+  }
+</style>

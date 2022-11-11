@@ -52,9 +52,13 @@ def draw_points(guidance, _):
         plt.plot(p1, p2, "r+", "MarkerSize", 30)
 
 
-def show_image(image, label, counter, guidance=None, slice_idx=None):
-    plt.figure("check", (12, 6))
-    plt.subplot(1, 2, 1)
+def show_image(
+    image,
+    label,
+    counter,
+):
+    plt.figure("check", (24, 12))
+    # plt.subplot(1, 2, 1)
     plt.title("image")
     plt.imshow(image, cmap="gray")
 
@@ -62,15 +66,15 @@ def show_image(image, label, counter, guidance=None, slice_idx=None):
         masked = np.ma.masked_where(label == 0, label)
         plt.imshow(masked, "jet", interpolation="none", alpha=0.7)
 
-    draw_points(guidance, slice_idx)
-    plt.colorbar()
+    # draw_points(guidance, slice_idx)
+    # plt.colorbar()
 
-    if label is not None:
-        plt.subplot(1, 2, 2)
-        plt.title("label")
-        plt.imshow(label)
-        plt.colorbar()
-        # draw_points(guidance, slice_idx)
+    # if label is not None:
+    #     plt.subplot(1, 2, 2)
+    #     plt.title("label")
+    #     plt.imshow(label)
+    #     plt.colorbar()
+    #     draw_points(guidance, slice_idx)
 
     plt.savefig(f"./predictions/pred_slice_{counter*.1:.0f}.png")
     # plt.show()

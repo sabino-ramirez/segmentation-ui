@@ -28,8 +28,9 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    message = Message(content="Hello Welcome")
-    return message
+    # message = Message(content="Hello Welcome")
+    return FileResponse("/home/sabino/papaya-react/build/index.html")
+    # return message
 
 
 @app.post("/upload", response_model=Message)
