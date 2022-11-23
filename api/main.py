@@ -3,12 +3,19 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import shutil
+from ai import config
+import base64
 
 # from typing import List
 
 
 class Message(BaseModel):
     content: str
+
+
+# Class Prediction(BaseModel):
+#     name: str
+#     base64:
 
 
 app = FastAPI()
@@ -28,12 +35,22 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    # message = Message(content="Hello Welcome")
-    return FileResponse("/home/sabino/papaya-react/build/index.html")
-    # return message
+    message = Message(content="Hello Welcome")
+    return message
 
 
 @app.post("/upload", response_model=Message)
+# async def uploadFile(img: str):
+#     config.doTheThing(img)
+#
+#     with open("ai/pred_"+img, "rb") as image_file:
+#         encoded_image_string = base64.b64encode(image_file.read())
+#
+#     payload = {"image": encoded_image_string}
+#     # return Message(content=f"Successfully uploaded {file.filename}")
+#     return payload
+
+
 def uploadFile(file: UploadFile = File(...)):
     try:
         with open(f"ai/{file.filename}", "wb") as buffer:
@@ -43,19 +60,23 @@ def uploadFile(file: UploadFile = File(...)):
     finally:
         file.file.close()
 
-    # message = Message(content=f"Successfully uploaded {file.filename}")
-    # return message
-    return Message(content=f"Successfully uploaded {file.filename}")
-    # return {"message": f"Successfully uploaded {file.filename}"}
+    config.doTheThing(f"ai/{file.filename}")
 
 
 @app.get("/infer")
 async def getInference():
-    slices = [
-        FileResponse(f"ai/predictions/pred_slice_{i}.png", filename=f"slice{i}.png")
-        for i in range(1, 13)
-    ]
-    return slices
+    # config.print_config()
+    config.doTheThing("pt19.nii.gz")
+    return Message(content=f"nice worked")
+
+
+# @app.get("/infer")
+# async def getInference():
+#     slices = [
+#         FileResponse(f"ai/predictions/pred_slice_{i}.png", filename=f"slice{i}.png")
+#         for i in range(1, 13)
+#     ]
+#     return slices
 
 
 # upload list of files
