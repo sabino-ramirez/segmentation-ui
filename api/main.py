@@ -63,6 +63,21 @@ def uploadFile(file: UploadFile = File(...)):
     config.doTheThing(f"ai/{file.filename}")
 
 
+@app.get("/test")
+async def returnBase64(imgName: str = "none"):
+    if imgName == "none":
+        print("didn't work")
+    else:
+        # content = myFile.file.read()
+        with open('pt19.nii.gz', 'rb') as f: 
+            converted = base64.b64decode(f.read())
+
+        print(type(converted))
+        print(converted)
+            # f.write(content)
+    
+    return Message(content=f"nice worked")
+
 @app.get("/infer")
 async def getInference():
     # config.print_config()
