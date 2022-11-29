@@ -11,7 +11,7 @@ import AddIcon from "@mui/icons-material/Add";
 
 export function LayersPanel(props) {
   function handleRunAI() {
-    props.onRunAI()
+    props.onRunAI();
   }
 
   function handleAddLayer() {

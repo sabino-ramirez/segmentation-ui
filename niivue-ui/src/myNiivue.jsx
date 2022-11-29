@@ -119,17 +119,20 @@ export default function NiiVue(props) {
     );
   });
 
-  function runAI() {
+  async function runAI() {
     console.log("run ai invoked");
     console.log(nv.volumes[0].name);
     // send file to backend for inference
 
     // function to receive base64 prediction
 
-    // const nvimage = await NVImage.loadFromBase64({
-    //   base64: base64Prediction,
-    //   colorMap: 'green'
-    // })
+    // const base64Prediction =
+    //   "\\x1d\\x13\\xe6)\\xb9\\xa7QC\\x9c\\xceg\\xa6\\x1a\\xcb\\xe7\\xfb\\xae\\xdc\\x87\\xe3\\xfd\\xc9\\xbd\\xa8\\xbd\\xb9\\xab\\xce5\\xd7\\xda\\x89";
+
+    // const nvimage = await NVImage.loadFromUrl({
+    //   base64: "pt19_label.nii.gz",
+    //   colorMap: "green",
+    // });
 
     // nv.addVolume(nvimage);
     // setLayers([...nv.volumes]);

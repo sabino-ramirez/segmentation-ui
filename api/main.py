@@ -63,36 +63,28 @@ def uploadFile(file: UploadFile = File(...)):
     config.doTheThing(f"ai/{file.filename}")
 
 
-@app.get("/test")
-async def returnBase64(imgName: str = "none"):
-    if imgName == "none":
-        print("didn't work")
-    else:
-        # content = myFile.file.read()
-        with open('pt19.nii.gz', 'rb') as f: 
-            converted = base64.b64decode(f.read())
+@app.get("/getFile", response_class=FileResponse)
+async def returnFile():
+    filePath = "pt19.nii.gz"
+    return filePath
 
-        print(type(converted))
-        print(converted)
-            # f.write(content)
-    
+
+@app.get("/test")
+async def returnBase64():
+    # content = myFile.file.read()
+    with open("pred_pt19.nii.gz", "rb") as f:
+        converted = base64.b64decode(f.read())
+
+    print(type(converted))
+    print(converted)
+    print(str(converted, encoding="latin-1"))
+    # f.write(content)
+
     return Message(content=f"nice worked")
+
 
 @app.get("/infer")
 async def getInference():
     # config.print_config()
     config.doTheThing("pt19.nii.gz")
     return Message(content=f"nice worked")
-
-
-# @app.get("/infer")
-# async def getInference():
-#     slices = [
-#         FileResponse(f"ai/predictions/pred_slice_{i}.png", filename=f"slice{i}.png")
-#         for i in range(1, 13)
-#     ]
-#     return slices
-
-
-# upload list of files
-# from yt video of russian guy
