@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import shutil
@@ -13,15 +14,26 @@ class Message(BaseModel):
     content: str
 
 
+class Prediction(BaseModel):
+    mime: str
+    image: str
+
+
+class PredictionPath(BaseModel):
+    file: str
+
+
 # Class Prediction(BaseModel):
 #     name: str
 #     base64:
 
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 origins = [
     "http://localhost:5173",
+    "http://localhost:3000",
 ]
 
 app.add_middleware(
@@ -63,24 +75,28 @@ def uploadFile(file: UploadFile = File(...)):
     config.doTheThing(f"ai/{file.filename}")
 
 
-@app.get("/getFile", response_class=FileResponse)
-async def returnFile():
-    filePath = "pt19.nii.gz"
-    return filePath
+@app.get("/getFile")
+# async def returnFile():
+#     filePath = "./static/pred_pt19.nii.gz"
+#     return FileResponse(filePath)
+async def returnFilePath():
+    # filePath = "http://localhost:8000/static/pred_pt19.nii.gz"
+    filePath = "http://localhost:8000/static/pt19_label.nii.gz"
+    return PredictionPath(file=filePath)
 
 
 @app.get("/test")
 async def returnBase64():
     # content = myFile.file.read()
     with open("pred_pt19.nii.gz", "rb") as f:
-        converted = base64.b64decode(f.read())
+        converted = base64.b64encode(f.read())
 
-    print(type(converted))
-    print(converted)
+    # print(type(converted))
+    # print(converted)
     print(str(converted, encoding="latin-1"))
     # f.write(content)
 
-    return Message(content=f"nice worked")
+    return Prediction(mime="image/nii", image=f"{str(converted, encoding='utf-8')}")
 
 
 @app.get("/infer")

@@ -139,4 +139,4 @@ def doTheThing(img: str):
         image = data["image"]
         label = data["pred"]
 
-    nib.save(nib.Nifti1Image(data["pred"], np.eye(4)), "pred_"+img)
+    nib.save(nib.Nifti1Image(data["pred"], np.eye(4)), "pred_" + img)

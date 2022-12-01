@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Button, Typography } from "@mui/material";
 import { Box } from "@mui/material";
 import { Fade } from "@mui/material";
@@ -23,6 +23,8 @@ const nv = new Niivue({
 // The NiiVue component wraps all other components in the UI.
 // It is exported so that it can be used in other projects easily
 export default function NiiVue(props) {
+  const pred = React.useRef("use ref default");
+  // const [prediction, setPrediction] = React.useState("use state default");
   const [openSettings, setOpenSettings] = React.useState(false);
   const [openLayers, setOpenLayers] = React.useState(false);
   const [crosshairColor, setCrosshairColor] = React.useState(
@@ -120,22 +122,47 @@ export default function NiiVue(props) {
   });
 
   async function runAI() {
-    console.log("run ai invoked");
-    console.log(nv.volumes[0].name);
-    // send file to backend for inference
+    let prediction;
 
-    // function to receive base64 prediction
+    try {
+      const response = await fetch("http://localhost:8000/getFile", {
+        method: "GET",
+        headers: {
+          // "Content-Type": "application/json",
+          // Accept: "application/json",
+        },
+      });
 
-    // const base64Prediction =
-    //   "\\x1d\\x13\\xe6)\\xb9\\xa7QC\\x9c\\xceg\\xa6\\x1a\\xcb\\xe7\\xfb\\xae\\xdc\\x87\\xe3\\xfd\\xc9\\xbd\\xa8\\xbd\\xb9\\xab\\xce5\\xd7\\xda\\x89";
+      if (!response.ok) {
+        throw new Error(`Error! status: ${response.status}`);
+      }
 
-    // const nvimage = await NVImage.loadFromUrl({
-    //   base64: "pt19_label.nii.gz",
-    //   colorMap: "green",
-    // });
+      const result = await response.json();
 
-    // nv.addVolume(nvimage);
-    // setLayers([...nv.volumes]);
+      console.log("result is: ", JSON.stringify(result, null, 4));
+
+      const mememe = await result.file;
+      prediction = mememe;
+    } catch (err) {
+      console.log(err.message);
+    } finally {
+      console.log("finally");
+    }
+
+    console.log(prediction);
+    const predImage = await NVImage.loadFromUrl({
+      url: prediction,
+      colorMap: "green",
+    });
+
+    nv.addVolume(predImage);
+    setLayers([...nv.volumes]);
+    // window.open(predResult.file);
+    // let url = window.URL.createObjectURL(blob);
+    // let a = document.createElement("a");
+    // a.href = url;
+    // a.download = "";
+    // a.click();
   }
 
   async function addLayer(file) {
