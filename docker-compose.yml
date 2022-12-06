@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  fastapi:
+    build: ./api
+    ports:
+      - 8000:8000
+    volumes:
+      - ./api:/app:Z
+  niivue:
+    build: ./niivue-ui
+    ports:
+      - 3000:3000
+    volumes:
+      - ./niivue-ui/:/app:Z
