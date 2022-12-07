@@ -2,14 +2,22 @@ version: "3.8"
 
 services:
   fastapi:
+    container_name: "fastapi"
     build: ./api
+    # environment:
+    #   PORT: 8000
     ports:
       - 8000:8000
-    volumes:
-      - ./api:/app:Z
+  #   volumes:
+  #     - ./api:/app/api:Z
   niivue:
+    container_name: "niivue"
     build: ./niivue-ui
+    # environment:
+    #   PORT: 3000
+    links:
+      - fastapi:api
     ports:
       - 3000:3000
-    volumes:
-      - ./niivue-ui/:/app:Z
+    # volumes:
+    #   - ./niivue-ui/:/app/niivue-ui:Z

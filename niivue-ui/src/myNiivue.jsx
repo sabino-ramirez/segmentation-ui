@@ -126,6 +126,8 @@ export default function NiiVue(props) {
 
     try {
       const response = await fetch("http://localhost:8000/getFile", {
+        // const response = await fetch("http://host.docker.internal:8000/getFile", {
+        // const response = await fetch("http://127.0.0.1:8000/getFile", {
         method: "GET",
         headers: {
           // "Content-Type": "application/json",
