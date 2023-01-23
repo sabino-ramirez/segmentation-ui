@@ -8,10 +8,17 @@ import GestureIcon from "@mui/icons-material/Gesture";
 import CodeIcon from "@mui/icons-material/Code";
 import LayersIcon from "@mui/icons-material/Layers";
 import AddIcon from "@mui/icons-material/Add";
+import Uploady from "@rpldy/uploady";
+import UploadButton from "@rpldy/upload-button";
+import UploadDropZone from "@rpldy/upload-drop-zone";
 
 export function LayersPanel(props) {
   function handleRunAI() {
     props.onRunAI();
+  }
+
+  function handleAddDicom() {
+    props.onAddDicom();
   }
 
   function handleAddLayer() {
@@ -79,6 +86,14 @@ export function LayersPanel(props) {
           >
             Run AI
           </IconButton>
+          <IconButton
+            style={{
+              marginTop: "8px",
+            }}
+            onClick={() => handleAddDicom()}
+          >
+            show dicom
+          </IconButton>
         </Box>
         <Box
           sx={{
@@ -114,6 +129,34 @@ export function LayersPanel(props) {
             </Button>
           </Box>
           {props.children}
+          <Uploady
+            webkitdirectory={true}
+            // autoUpload={false}
+            destination={{ url: "http://localhost:8000/uploadDicom" }}
+          >
+            <UploadDropZone
+              // onDragOverClassName="drag-over"
+              htmlDirContentParams={{ recursive: false }}
+              // grouped
+              // maxGroupSize={100}
+              // forceJsonResponse
+              // dropHandler={(e, getFiles) => {
+              //   // e.preventDefault();
+              //   console.log(e);
+              //   console.log(getFiles);
+              // }}
+            >
+              <Box
+                sx={{
+                  height: 200,
+                  "&:hover": {
+                    backgroundColor: "lightblue",
+                    opacity: [0.5, 0.5, 0.5],
+                  },
+                }}
+              ></Box>
+            </UploadDropZone>
+          </Uploady>
         </Box>
       </Box>
     </Drawer>

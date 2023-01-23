@@ -13,6 +13,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import nibabel as nib
+import dicom2nifti
 import torch
 
 # import monai
@@ -41,6 +42,9 @@ from monai.transforms import (
 from monai.networks.nets.dynunet import DynUNet
 
 # print_config()
+
+def dicomHTing():
+    dicom2nifti.dicom_series_to_nifti("/home/sabino/repos/segmentation-ui/api/dicoms/", "/home/sabino/repos/segmentation-ui/api/static/dicom.nii.gz", reorient_nifti=True)
 
 
 def doTheThing(img: str):

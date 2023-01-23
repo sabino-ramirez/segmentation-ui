@@ -6,12 +6,14 @@ from pydantic import BaseModel
 import shutil
 from ai import config
 import base64
+import dicom2nifti
 
-# from typing import List
+from typing import List
 
 
 class Message(BaseModel):
     content: str
+    filenames: list[str]
 
 
 class Prediction(BaseModel):
@@ -32,8 +34,6 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 origins = [
-    "http://172.19.0.2:3000",
-    "http://localhost:5173",
     "http://localhost:3000",
 ]
 
@@ -41,7 +41,7 @@ app.add_middleware(
     CORSMiddleware,
     # allow_origins=origins,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -49,33 +49,46 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    message = Message(content="Hello Welcome")
+    message = Message(content="Hello Welcome", filenames=[""])
     return message
 
 
-@app.post("/upload", response_model=Message)
-# async def uploadFile(img: str):
-#     config.doTheThing(img)
-#
-#     with open("ai/pred_"+img, "rb") as image_file:
-#         encoded_image_string = base64.b64encode(image_file.read())
-#
-#     payload = {"image": encoded_image_string}
-#     # return Message(content=f"Successfully uploaded {file.filename}")
-#     return payload
-
-
-def uploadFile(file: UploadFile = File(...)):
+@app.post("/uploadDicom")
+# uploadFile and call ai on it
+async def uploadFile(file: UploadFile = File(...)):
     try:
-        with open(f"ai/{file.filename}", "wb") as buffer:
+        with open(f"dicoms/{file.filename}", "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
     except Exception:
-        return {"message": "There was an error uploading the file"}
+        return {"error": "exceptioooon"}
     finally:
         file.file.close()
 
-    config.doTheThing(f"ai/{file.filename}")
+    return {"nice": "hwat is"}
 
+    # config.doTheThing(f"ai/{file.filename}")
+
+@app.get("/showDicom")
+async def showDicom():
+    dicom2nifti.dicom_series_to_nifti("./dicoms", "./static/dicom.nii.gz", reorient_nifti=True)
+    # config.dicomHTing()
+
+    filepath = "http://localhost:8000/static/dicom.nii.gz"
+    return PredictionPath(file=filepath)
+
+@app.post("/uploadDicoms")
+async def uploadDicoms(files: List[UploadFile] = File(...)):
+    print(len(files))
+    # for file in files:
+    #     try:
+    #         with open(f"dicoms/{file.filename}", "wb") as buffer:
+    #             shutil.copyfileobj(file.file, buffer)
+    #     except Exception:
+    #         return {"error": "exceptioooon"}
+    #     finally:
+    #         file.file.close()
+    #
+    return {"nice": "hwat is"}
 
 @app.get("/getFile")
 # async def returnFile():
@@ -105,4 +118,4 @@ async def returnBase64():
 async def getInference():
     # config.print_config()
     config.doTheThing("pt19.nii.gz")
-    return Message(content=f"nice worked")
+    # return Message(content=f"nice worked")

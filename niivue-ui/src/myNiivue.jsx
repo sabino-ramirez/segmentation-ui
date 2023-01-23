@@ -14,10 +14,13 @@ import { NiivuePanel } from "./components/NiivuePanel.jsx";
 import NVSwitch from "./components/Switch.jsx";
 import LocationTable from "./components/LocationTable.jsx";
 import Layer from "./components/Layer.jsx";
+// import Uploady from "@rpldy/uploady";
+// import { asUploadButton } from "@rpldy/upload-button";
 import "./Niivue.css";
 
 const nv = new Niivue({
-  loadingText: "drag and drop image...",
+  dragAndDropEnabled: false,
+  loadingText: "not sure yet",
 });
 
 // The NiiVue component wraps all other components in the UI.
@@ -165,6 +168,71 @@ export default function NiiVue(props) {
     // a.href = url;
     // a.download = "";
     // a.click();
+  }
+
+  async function addDicom() {
+    let prediction;
+
+    try {
+      const response = await fetch("http://localhost:8000/showDicom", {
+        // const response = await fetch("http://host.docker.internal:8000/getFile", {
+        // const response = await fetch("http://127.0.0.1:8000/getFile", {
+        method: "GET",
+        headers: {
+          // "Content-Type": "application/json",
+          // Accept: "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      console.log("server response is: ", JSON.stringify(result, null, 4));
+
+      const mememe = await result.file;
+      prediction = mememe;
+    } catch (err) {
+      console.log(err.message);
+    } finally {
+      console.log("finally");
+    }
+
+    const predImage = await NVImage.loadFromUrl({
+      url: prediction,
+      colorMap: "gray",
+    });
+
+    nv.addVolume(predImage);
+    setLayers([...nv.volumes]);
+
+    // console.log(prediction);
+    // let input = document.createElement("input");
+    // input.type = "file";
+    // input.webkitdirectory = "";
+    // input.onchange = async function () {
+    //   // addLayer(input.files[0]);
+    // };
+    // input.click();
+    // let volumeList = [
+    //   {
+    //     // url: "DICOM/niivue-manifest.txt",
+    //     // url: "dicom/niivue-manifest.txt",
+    //     // url: "https://raw.githubusercontent.com/niivue/niivue-demo-images/main/dicom/niivue-manifest.txt",
+    //     colorMap: "gray",
+    //     opacity: 1,
+    //     visible: true,
+    //     isManifest: true,
+    //   },
+    // ];
+    //
+    // nv.setRadiologicalConvention(true);
+    // // nv.addVolume(dicom);
+    // nv.loadVolumes(volumeList);
+    // nv.setSliceType(nv.sliceTypeMultiplanar);
+    // setLayers([...nv.volumes]);
   }
 
   async function addLayer(file) {
@@ -579,6 +647,7 @@ export default function NiiVue(props) {
         onToggleMenu={toggleLayers}
         onAddLayer={addLayer}
         onRunAI={runAI}
+        onAddDicom={addDicom}
       >
         {layerList}
       </LayersPanel>

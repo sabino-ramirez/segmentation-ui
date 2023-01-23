@@ -24,6 +24,7 @@ tensorboard = "*"
 torchvision = "*"
 uvicorn = "*"
 python-multipart = "*"
+dicom2nifti = "*"
 
 [dev-packages]
 
