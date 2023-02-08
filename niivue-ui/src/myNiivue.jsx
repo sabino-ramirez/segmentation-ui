@@ -125,7 +125,10 @@ export default function NiiVue(props) {
   });
 
   async function runAI() {
-    let prediction;
+    // let prediction;
+    let vag_prediciton;
+    let rect_prediciton;
+    let blad_prediciton;
 
     try {
       const response = await fetch("http://localhost:8000/getFile", {
@@ -146,21 +149,44 @@ export default function NiiVue(props) {
 
       console.log("result is: ", JSON.stringify(result, null, 4));
 
-      const mememe = await result.file;
-      prediction = mememe;
+      // const mememe = await result.file;
+      const vag_pred = await result.pathList[0];
+      const rect_pred = await result.pathList[1];
+      const blad_pred = await result.pathList[2];
+      // prediction = mememe;
+      vag_prediciton = vag_pred;
+      rect_prediciton = rect_pred;
+      blad_prediciton = blad_pred;
     } catch (err) {
       console.log(err.message);
     } finally {
       console.log("finally");
     }
 
-    console.log(prediction);
-    const predImage = await NVImage.loadFromUrl({
-      url: prediction,
+    // console.log(prediction);
+    // const predImage = await NVImage.loadFromUrl({
+    //   url: prediction,
+    //   colorMap: "green",
+    // });
+    const vag_predImg = await NVImage.loadFromUrl({
+      url: vag_prediciton,
+      colorMap: "blue",
+    });
+
+    const rect_predImg = await NVImage.loadFromUrl({
+      url: rect_prediciton,
       colorMap: "green",
     });
 
-    nv.addVolume(predImage);
+    const blad_predImg = await NVImage.loadFromUrl({
+      url: blad_prediciton,
+      colorMap: "red",
+    });
+
+    nv.addVolume(blad_predImg);
+    nv.addVolume(vag_predImg);
+    nv.addVolume(rect_predImg);
+
     setLayers([...nv.volumes]);
     // window.open(predResult.file);
     // let url = window.URL.createObjectURL(blob);
@@ -238,7 +264,7 @@ export default function NiiVue(props) {
   async function addLayer(file) {
     const nvimage = await NVImage.loadFromFile({
       file: file,
-      colorMap: "green",
+      colorMap: "gray",
     });
     nv.addVolume(nvimage);
     setLayers([...nv.volumes]);

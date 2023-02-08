@@ -1,5 +1,7 @@
-node_modules
-__pycache__
-.*
-Dockerfile
-!.npmrc
+**
+
+!Pipfile
+!Pipfile.lock
+!ai/
+!static/
+!main.py
